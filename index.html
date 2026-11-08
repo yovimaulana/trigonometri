@@ -1,0 +1,1227 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Eksplorasi Visual Trigonometri Interaktif</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Plus Jakarta Sans', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            brand: {
+              sin: '#ec4899',   /* Pink/Rose */
+              cos: '#3b82f6',   /* Blue */
+              tan: '#8b5cf6',   /* Purple */
+              hyp: '#f59e0b',   /* Amber */
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { background-color: #0b0f19; color: #f3f4f6; }
+    .glass {
+      background: rgba(17, 24, 39, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .glass-card {
+      background: rgba(31, 41, 55, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      transition: all 0.3s ease;
+    }
+    .glass-card:hover {
+      border-color: rgba(59, 130, 246, 0.3);
+    }
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #0b0f19; }
+    ::-webkit-scrollbar-thumb { background: #1f2937; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #374151; }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col font-sans antialiased selection:bg-blue-500 selection:text-white">
+
+  <!-- HEADER NAV -->
+  <header class="sticky top-0 z-50 glass border-b border-gray-800">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center shadow-lg shadow-blue-500/20">
+          <i class="fa-solid fa-shapes text-white text-xl"></i>
+        </div>
+        <div>
+          <h1 class="text-lg font-bold bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent">TrigoLab Visual</h1>
+          <p class="text-xs text-gray-400">Pengantar & Aplikasi Trigonometri Interaktif</p>
+        </div>
+      </div>
+
+      <!-- Main Navigation Tabs -->
+      <nav class="flex items-center gap-1 bg-gray-900/80 p-1 rounded-xl border border-gray-800">
+        <button id="tab-visualizer-btn" onclick="switchMainTab('visualizer')" class="px-4 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 bg-blue-600 text-white shadow-md">
+          <i class="fa-solid fa-circle-notch"></i>
+          <span>Lingkaran Satuan & Gelombang</span>
+        </button>
+        <button id="tab-applications-btn" onclick="switchMainTab('applications')" class="px-4 py-2 rounded-lg text-sm font-semibold text-gray-400 hover:text-white transition-all flex items-center gap-2">
+          <i class="fa-solid fa-earth-americas"></i>
+          <span>Aplikasi Sehari-hari</span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- MAIN CONTENT CONTAINER -->
+  <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+    <!-- ==================== SECTION 1: UNIT CIRCLE & WAVE VISUALIZER ==================== -->
+    <section id="section-visualizer" class="space-y-6">
+      
+      <!-- Control Bar -->
+      <div class="glass p-5 rounded-2xl flex flex-wrap items-center justify-between gap-4 shadow-xl">
+        <div class="flex items-center gap-4 flex-grow max-w-xl">
+          <label for="angle-slider" class="text-sm font-semibold text-gray-300 min-w-[70px]">Sudut (θ):</label>
+          <input type="range" id="angle-slider" min="0" max="360" value="45" step="1" 
+                 class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-blue-500">
+          <div class="flex items-center gap-1 bg-gray-900 border border-gray-700 rounded-lg px-2 py-1 min-w-[90px]">
+            <input type="number" id="angle-input" min="0" max="360" value="45" class="w-12 bg-transparent text-right font-mono font-bold text-blue-400 focus:outline-none">
+            <span class="text-gray-400 font-mono">°</span>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <button id="play-btn" onclick="toggleAnimation()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-sm font-semibold transition-all flex items-center gap-2 shadow-lg shadow-emerald-600/20">
+            <i id="play-icon" class="fa-solid fa-play"></i>
+            <span id="play-text">Putar Animasi</span>
+          </button>
+          <button onclick="resetAngle()" class="px-3 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-xl text-sm transition-all" title="Reset Sudut ke 45°">
+            <i class="fa-solid fa-rotate-left"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Canvases Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- Left: Unit Circle Canvas -->
+        <div class="lg:col-span-5 glass p-5 rounded-2xl flex flex-col justify-between items-center relative overflow-hidden">
+          <div class="w-full flex items-center justify-between mb-2 z-10">
+            <h3 class="font-bold text-gray-200 text-sm flex items-center gap-2">
+              <i class="fa-solid fa-compass text-blue-400"></i> Lingkaran Satuan (r = 1)
+            </h3>
+            <span id="quadrant-badge" class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/20">Kuadran I</span>
+          </div>
+
+          <!-- Unit Circle Canvas -->
+          <div class="relative w-full aspect-square max-w-[380px] flex items-center justify-center">
+            <canvas id="circleCanvas" width="380" height="380" class="w-full h-full cursor-crosshair"></canvas>
+          </div>
+
+          <div class="w-full text-xs text-gray-400 text-center mt-2">
+            <i class="fa-solid fa-mouse-pointer text-gray-500 mr-1"></i> Klik atau seret titik pada lingkaran untuk mengubah sudut
+          </div>
+        </div>
+
+        <!-- Right: Live Wave Graphs -->
+        <div class="lg:col-span-7 glass p-5 rounded-2xl flex flex-col justify-between">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="font-bold text-gray-200 text-sm flex items-center gap-2">
+              <i class="fa-solid fa-chart-line text-pink-400"></i> Grafik Gelombang Sine & Cosine
+            </h3>
+            <div class="flex items-center gap-4 text-xs font-semibold">
+              <span class="flex items-center gap-1.5 text-brand-sin"><span class="w-3 h-3 rounded-full bg-brand-sin inline-block"></span> Sinus</span>
+              <span class="flex items-center gap-1.5 text-brand-cos"><span class="w-3 h-3 rounded-full bg-brand-cos inline-block"></span> Kosinus</span>
+            </div>
+          </div>
+
+          <!-- Waves Canvas -->
+          <div class="relative w-full h-[320px]">
+            <canvas id="waveCanvas" width="600" height="320" class="w-full h-full"></canvas>
+          </div>
+
+          <div class="grid grid-cols-3 gap-2 mt-2 pt-3 border-t border-gray-800 text-center text-xs font-mono">
+            <div class="bg-gray-900/60 p-2 rounded-lg border border-gray-800">
+              <span class="text-gray-400 block text-[10px] uppercase font-sans">Radian</span>
+              <span id="rad-val" class="text-gray-200 font-bold">0.79 rad</span>
+            </div>
+            <div class="bg-gray-900/60 p-2 rounded-lg border border-gray-800">
+              <span class="text-gray-400 block text-[10px] uppercase font-sans">Keliling Lilitan</span>
+              <span id="pi-val" class="text-gray-200 font-bold">0.25 π</span>
+            </div>
+            <div class="bg-gray-900/60 p-2 rounded-lg border border-gray-800">
+              <span class="text-gray-400 block text-[10px] uppercase font-sans">Koordinat (x, y)</span>
+              <span id="coord-val" class="text-blue-400 font-bold">(0.71, 0.71)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Live Trigonometric Ratios & SOH-CAH-TOA Dashboard -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        
+        <!-- SINE Card -->
+        <div class="glass-card p-5 rounded-2xl relative overflow-hidden group">
+          <div class="absolute top-0 right-0 w-24 h-24 bg-brand-sin/10 rounded-full blur-2xl group-hover:bg-brand-sin/20 transition-all"></div>
+          <div class="flex justify-between items-start mb-3">
+            <div>
+              <span class="text-xs font-bold tracking-wider text-brand-sin uppercase">SOH • Sinus</span>
+              <h4 class="text-2xl font-extrabold font-mono text-white mt-1">sin(θ) = <span id="sin-val" class="text-brand-sin">0.7071</span></h4>
+            </div>
+            <span class="p-2 bg-brand-sin/10 text-brand-sin rounded-xl font-mono text-xs font-bold">Opp / Hyp</span>
+          </div>
+          <div class="space-y-1.5 text-xs text-gray-300 font-mono">
+            <div class="flex justify-between"><span>Depan (Opposite):</span> <span id="opp-len" class="text-white font-bold">0.707</span></div>
+            <div class="flex justify-between"><span>Miring (Hypotenuse):</span> <span class="text-white font-bold">1.000</span></div>
+            <div class="flex justify-between text-gray-400 font-sans pt-1 border-t border-gray-800"><span>Cosecan (csc = 1/sin):</span> <span id="csc-val" class="font-mono text-gray-200">1.414</span></div>
+          </div>
+        </div>
+
+        <!-- COSINE Card -->
+        <div class="glass-card p-5 rounded-2xl relative overflow-hidden group">
+          <div class="absolute top-0 right-0 w-24 h-24 bg-brand-cos/10 rounded-full blur-2xl group-hover:bg-brand-cos/20 transition-all"></div>
+          <div class="flex justify-between items-start mb-3">
+            <div>
+              <span class="text-xs font-bold tracking-wider text-brand-cos uppercase">CAH • Kosinus</span>
+              <h4 class="text-2xl font-extrabold font-mono text-white mt-1">cos(θ) = <span id="cos-val" class="text-brand-cos">0.7071</span></h4>
+            </div>
+            <span class="p-2 bg-brand-cos/10 text-brand-cos rounded-xl font-mono text-xs font-bold">Adj / Hyp</span>
+          </div>
+          <div class="space-y-1.5 text-xs text-gray-300 font-mono">
+            <div class="flex justify-between"><span>Samping (Adjacent):</span> <span id="adj-len" class="text-white font-bold">0.707</span></div>
+            <div class="flex justify-between"><span>Miring (Hypotenuse):</span> <span class="text-white font-bold">1.000</span></div>
+            <div class="flex justify-between text-gray-400 font-sans pt-1 border-t border-gray-800"><span>Secan (sec = 1/cos):</span> <span id="sec-val" class="font-mono text-gray-200">1.414</span></div>
+          </div>
+        </div>
+
+        <!-- TANGENT Card -->
+        <div class="glass-card p-5 rounded-2xl relative overflow-hidden group">
+          <div class="absolute top-0 right-0 w-24 h-24 bg-brand-tan/10 rounded-full blur-2xl group-hover:bg-brand-tan/20 transition-all"></div>
+          <div class="flex justify-between items-start mb-3">
+            <div>
+              <span class="text-xs font-bold tracking-wider text-brand-tan uppercase">TOA • Tangen</span>
+              <h4 class="text-2xl font-extrabold font-mono text-white mt-1">tan(θ) = <span id="tan-val" class="text-brand-tan">1.0000</span></h4>
+            </div>
+            <span class="p-2 bg-brand-tan/10 text-brand-tan rounded-xl font-mono text-xs font-bold">Opp / Adj</span>
+          </div>
+          <div class="space-y-1.5 text-xs text-gray-300 font-mono">
+            <div class="flex justify-between"><span>Kemiringan (Gradien):</span> <span id="tan-slope" class="text-white font-bold">1.000</span></div>
+            <div class="flex justify-between"><span>Formula (sin/cos):</span> <span class="text-white font-bold">0.71 / 0.71</span></div>
+            <div class="flex justify-between text-gray-400 font-sans pt-1 border-t border-gray-800"><span>Cotangen (cot = 1/tan):</span> <span id="cot-val" class="font-mono text-gray-200">1.000</span></div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ==================== SECTION 2: REAL-WORLD APPLICATIONS SIMULATOR ==================== -->
+    <section id="section-applications" class="hidden space-y-6">
+      
+      <!-- App Selector Sub-Tabs -->
+      <div class="flex flex-wrap gap-2 p-1.5 bg-gray-900/70 rounded-2xl border border-gray-800 max-w-4xl">
+        <button onclick="switchAppSubTab('height')" id="app-btn-height" class="flex-1 min-w-[140px] px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 bg-blue-600 text-white shadow-md">
+          <i class="fa-solid fa-building"></i>
+          <span>1. Tinggi Gedung</span>
+        </button>
+        <button onclick="switchAppSubTab('gps')" id="app-btn-gps" class="flex-1 min-w-[140px] px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 text-gray-400 hover:text-white">
+          <i class="fa-solid fa-satellite text-yellow-400"></i>
+          <span>2. Navigasi GPS</span>
+        </button>
+        <button onclick="switchAppSubTab('graphics')" id="app-btn-graphics" class="flex-1 min-w-[140px] px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 text-gray-400 hover:text-white">
+          <i class="fa-solid fa-gamepad text-purple-400"></i>
+          <span>3. Grafis Game 3D</span>
+        </button>
+        <button onclick="switchAppSubTab('sound')" id="app-btn-sound" class="flex-1 min-w-[140px] px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 text-gray-400 hover:text-white">
+          <i class="fa-solid fa-wave-square text-emerald-400"></i>
+          <span>4. Gelombang Audio</span>
+        </button>
+      </div>
+
+      <!-- App 1: Height Measurement (Sudut Elevasi) -->
+      <div id="app-height" class="glass p-6 rounded-2xl space-y-6">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-gray-800 pb-4">
+          <div>
+            <h3 class="text-xl font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-building-user text-blue-400"></i> Menghitung Tinggi Gedung (Sudut Elevasi)
+            </h3>
+            <p class="text-xs text-gray-400 mt-1">Menggunakan rasio Tangen (TOA): <span class="font-mono text-blue-300">tan(θ) = Tinggi / Jarak</span></p>
+          </div>
+          <div class="bg-blue-950/60 border border-blue-500/30 px-4 py-2 rounded-xl">
+            <span class="text-xs text-blue-300 font-sans block">Hasil Tinggi Gedung:</span>
+            <span id="app-building-height" class="text-2xl font-extrabold font-mono text-blue-400">22.42 m</span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+          <!-- Canvas Visualiser -->
+          <div class="lg:col-span-8 bg-gray-950 rounded-xl p-4 border border-gray-800 h-[380px] relative overflow-hidden flex items-center justify-center">
+            <canvas id="heightCanvas" width="650" height="350" class="w-full h-full"></canvas>
+          </div>
+
+          <!-- Interactive Controls & Formula Steps -->
+          <div class="lg:col-span-4 space-y-5">
+            <div class="space-y-4 bg-gray-900/60 p-4 rounded-xl border border-gray-800">
+              <div>
+                <div class="flex justify-between text-xs font-semibold mb-1">
+                  <span class="text-gray-300">Jarak Pengamat ke Gedung (d):</span>
+                  <span id="app-dist-label" class="text-blue-400 font-mono">12.0 m</span>
+                </div>
+                <input type="range" id="app-dist-slider" min="5" max="30" value="12" step="0.5" 
+                       class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-blue-500">
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs font-semibold mb-1">
+                  <span class="text-gray-300">Sudut Elevasi (θ):</span>
+                  <span id="app-elev-label" class="text-pink-400 font-mono">60°</span>
+                </div>
+                <input type="range" id="app-elev-slider" min="10" max="75" value="60" step="1" 
+                       class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-pink-500">
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs font-semibold mb-1">
+                  <span class="text-gray-300">Tinggi Mata Pengamat (h_mata):</span>
+                  <span id="app-eye-label" class="text-emerald-400 font-mono">1.6 m</span>
+                </div>
+                <input type="range" id="app-eye-slider" min="1.0" max="2.2" value="1.6" step="0.1" 
+                       class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-emerald-500">
+              </div>
+            </div>
+
+            <!-- Calculation Steps Breakdown -->
+            <div class="bg-gray-900/40 p-4 rounded-xl border border-gray-800 space-y-2 text-xs font-mono">
+              <p class="text-gray-400 font-sans font-bold text-[11px] uppercase border-b border-gray-800 pb-1">Langkah Perhitungan:</p>
+              <p class="text-gray-300">1. tan(<span id="calc-angle">60</span>°) = x / <span id="calc-dist">12</span></p>
+              <p class="text-gray-300">2. x = <span id="calc-dist2">12</span> × <span id="calc-tan">1.732</span> = <span id="calc-x" class="text-pink-400 font-bold">20.78</span> m</p>
+              <p class="text-gray-300">3. Tinggi Total = x + h_mata</p>
+              <p class="text-emerald-400 font-bold text-sm">= <span id="calc-x2">20.78</span> + <span id="calc-eye">1.6</span> = <span id="calc-total">22.38</span> m</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- App 2: GPS & Triangulation -->
+      <div id="app-gps" class="hidden glass p-6 rounded-2xl space-y-6">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-gray-800 pb-4">
+          <div>
+            <h3 class="text-xl font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-satellite text-yellow-400"></i> Navigasi GPS &amp; Triangulasi
+            </h3>
+            <p class="text-xs text-gray-400 mt-1">Perhitungan trigonometri sinus/kosinus menentukan titik potong koordinat ponsel dari 3 satelit orbit.</p>
+          </div>
+          <div class="bg-yellow-950/40 border border-yellow-500/30 px-4 py-2 rounded-xl text-right">
+            <span class="text-xs text-yellow-300 font-sans block">Status Penguncian GPS:</span>
+            <span class="text-sm font-bold text-emerald-400 flex items-center gap-1.5"><i class="fa-solid fa-lock text-xs"></i> Lokasi Terkunci (3 Satelit)</span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+          <div class="lg:col-span-8 bg-gray-950 rounded-xl p-4 border border-gray-800 h-[380px] relative overflow-hidden">
+            <canvas id="gpsCanvas" width="650" height="350" class="w-full h-full cursor-pointer"></canvas>
+          </div>
+
+          <div class="lg:col-span-4 space-y-4">
+            <div class="bg-gray-900/60 p-4 rounded-xl border border-gray-800 space-y-3 text-xs">
+              <h4 class="font-bold text-gray-200">Geser Lokasi Pengguna (Target):</h4>
+              <p class="text-gray-400">Klik di mana saja pada layar radar di samping untuk mensimulasikan perpindahan lokasi pengguna dan melihat perubahan jarak trigonometris ke tiap satelit.</p>
+              
+              <div class="space-y-2 pt-2 font-mono">
+                <div class="flex justify-between p-2 bg-gray-950 rounded border border-yellow-500/20">
+                  <span class="text-yellow-400">Satelit ALPHA (S1):</span>
+                  <span id="sat1-dist" class="text-gray-200 font-bold">142.5 km</span>
+                </div>
+                <div class="flex justify-between p-2 bg-gray-950 rounded border border-cyan-500/20">
+                  <span class="text-cyan-400">Satelit BETA (S2):</span>
+                  <span id="sat2-dist" class="text-gray-200 font-bold">185.2 km</span>
+                </div>
+                <div class="flex justify-between p-2 bg-gray-950 rounded border border-purple-500/20">
+                  <span class="text-purple-400">Satelit GAMMA (S3):</span>
+                  <span id="sat3-dist" class="text-gray-200 font-bold">110.8 km</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="p-3 bg-blue-950/30 border border-blue-500/20 rounded-xl text-xs text-blue-200">
+              <i class="fa-solid fa-circle-info text-blue-400 mr-1"></i> 
+              <strong>Prinsip Matematika:</strong> Setiap satelit memancarkan gelombang yang membentuk lingkaran jarak <span class="font-mono">r² = (x - x₀)² + (y - y₀)²</span>. Titik temu ketiga lingkaran adalah koordinat presisi Anda!
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- App 3: 3D Graphics & Character Rotation -->
+      <div id="app-graphics" class="hidden glass p-6 rounded-2xl space-y-6">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-gray-800 pb-4">
+          <div>
+            <h3 class="text-xl font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-gamepad text-purple-400"></i> Rotasi Karakter Game 3D &amp; Grafis Computer
+            </h3>
+            <p class="text-xs text-gray-400 mt-1">Transformasi matriks rotasi 2D/3D menggunakan kombinasi Sinus dan Kosinus.</p>
+          </div>
+          <div class="bg-purple-950/40 border border-purple-500/30 px-4 py-2 rounded-xl text-right">
+            <span class="text-xs text-purple-300 font-sans block">Matriks Rotasi R(θ):</span>
+            <span class="text-xs font-mono text-purple-300">[cos θ  -sin θ] / [sin θ  cos θ]</span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+          <div class="lg:col-span-8 bg-gray-950 rounded-xl p-4 border border-gray-800 h-[380px] relative overflow-hidden">
+            <canvas id="graphicsCanvas" width="650" height="350" class="w-full h-full"></canvas>
+          </div>
+
+          <div class="lg:col-span-4 space-y-4">
+            <div class="bg-gray-900/60 p-4 rounded-xl border border-gray-800 space-y-4">
+              <div>
+                <div class="flex justify-between text-xs font-semibold mb-1">
+                  <span class="text-gray-300">Rotasi Karakter (θ):</span>
+                  <span id="char-rot-label" class="text-purple-400 font-mono">0°</span>
+                </div>
+                <input type="range" id="char-rot-slider" min="0" max="360" value="0" step="1" 
+                       class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-purple-500">
+              </div>
+
+              <div class="flex gap-2">
+                <button onclick="rotateCharAnim()" class="flex-1 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-bold transition-all">
+                  <i class="fa-solid fa-arrows-spin"></i> Putar 360°
+                </button>
+                <button onclick="resetCharRot()" class="px-3 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-xl text-xs">
+                  Reset
+                </button>
+              </div>
+            </div>
+
+            <div class="bg-gray-900/40 p-4 rounded-xl border border-gray-800 space-y-2 text-xs font-mono">
+              <p class="text-gray-400 font-sans font-bold text-[11px] uppercase border-b border-gray-800 pb-1">Kalkulasi Vektor Rotasi:</p>
+              <p class="text-gray-300">x' = x·cos(θ) - y·sin(θ)</p>
+              <p class="text-gray-300">y' = x·sin(θ) + y·cos(θ)</p>
+              <div class="pt-2 border-t border-gray-800 text-purple-300">
+                <span>Vektor Orientasi Hadap:</span>
+                <p id="char-vector" class="text-sm font-bold mt-0.5">(1.00, 0.00)</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- App 4: Sound Waves & Audio Frequencies -->
+      <div id="app-sound" class="hidden glass p-6 rounded-2xl space-y-6">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-gray-800 pb-4">
+          <div>
+            <h3 class="text-xl font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-wave-square text-emerald-400"></i> Gelombang Suara &amp; Frekuensi Audio
+            </h3>
+            <p class="text-xs text-gray-400 mt-1">Semua nada musik dan suara akustik dibentuk oleh pemrosesan sinyal gelombang sinus: <span class="font-mono text-emerald-300">y(t) = A · sin(2π · f · t)</span></p>
+          </div>
+          <button id="audio-toggle-btn" onclick="toggleAudioSynth()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-2 shadow-lg shadow-emerald-600/20">
+            <i class="fa-solid fa-volume-high"></i>
+            <span id="audio-btn-text">Bunyikan Nadanya (Audio Synthesizer)</span>
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+          <div class="lg:col-span-8 bg-gray-950 rounded-xl p-4 border border-gray-800 h-[380px] relative overflow-hidden">
+            <canvas id="soundCanvas" width="650" height="350" class="w-full h-full"></canvas>
+          </div>
+
+          <div class="lg:col-span-4 space-y-4">
+            <div class="bg-gray-900/60 p-4 rounded-xl border border-gray-800 space-y-4">
+              <div>
+                <div class="flex justify-between text-xs font-semibold mb-1">
+                  <span class="text-gray-300">Frekuensi / Nada (f):</span>
+                  <span id="sound-freq-label" class="text-emerald-400 font-mono">440 Hz (Nada A4)</span>
+                </div>
+                <input type="range" id="sound-freq-slider" min="130" max="880" value="440" step="5" 
+                       class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-emerald-500">
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs font-semibold mb-1">
+                  <span class="text-gray-300">Amplitudo / Volume (A):</span>
+                  <span id="sound-amp-label" class="text-blue-400 font-mono">75%</span>
+                </div>
+                <input type="range" id="sound-amp-slider" min="10" max="100" value="75" step="1" 
+                       class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-blue-500">
+              </div>
+            </div>
+
+            <div class="bg-gray-900/40 p-4 rounded-xl border border-gray-800 space-y-2 text-xs">
+              <h4 class="font-bold text-gray-200">Bagaimana Ini Bekerja?</h4>
+              <p class="text-gray-400 leading-relaxed">
+                Gelombang sinus murni menghasilkan nada musik tunggal murni. Ketika frekuensi dinaikkan (gelombang semakin rapat), nada suara akan terdengar semakin tinggi (melengking).
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="border-t border-gray-800/60 py-6 text-center text-xs text-gray-500">
+    <p>© TrigoLab • Media Pembelajaran Visual Interaktif Matematika SMA Kelas 10</p>
+  </footer>
+
+  <!-- SCRIPT LOGIC -->
+  <script>
+    // Global State Variables
+    let currentAngle = 45; // Degrees
+    let isAnimating = false;
+    let animFrameId = null;
+
+    // Canvas Elements
+    const circleCanvas = document.getElementById('circleCanvas');
+    const circleCtx = circleCanvas.getContext('2d');
+    
+    const waveCanvas = document.getElementById('waveCanvas');
+    const waveCtx = waveCanvas.getContext('2d');
+
+    // Interactive Inputs
+    const angleSlider = document.getElementById('angle-slider');
+    const angleInput = document.getElementById('angle-input');
+
+    // --- Tab Switching Logic ---
+    function switchMainTab(tabName) {
+      const visualizerSec = document.getElementById('section-visualizer');
+      const applicationsSec = document.getElementById('section-applications');
+      const visBtn = document.getElementById('tab-visualizer-btn');
+      const appBtn = document.getElementById('tab-applications-btn');
+
+      if (tabName === 'visualizer') {
+        visualizerSec.classList.remove('hidden');
+        applicationsSec.classList.add('hidden');
+
+        visBtn.className = "px-4 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 bg-blue-600 text-white shadow-md";
+        appBtn.className = "px-4 py-2 rounded-lg text-sm font-semibold text-gray-400 hover:text-white transition-all flex items-center gap-2";
+        drawVisualizer();
+      } else {
+        visualizerSec.classList.add('hidden');
+        applicationsSec.classList.remove('hidden');
+
+        appBtn.className = "px-4 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 bg-blue-600 text-white shadow-md";
+        visBtn.className = "px-4 py-2 rounded-lg text-sm font-semibold text-gray-400 hover:text-white transition-all flex items-center gap-2";
+        
+        // Render initial active app sub-tab
+        drawActiveAppSubTab();
+      }
+    }
+
+    function switchAppSubTab(appId) {
+      const apps = ['height', 'gps', 'graphics', 'sound'];
+      apps.forEach(id => {
+        const el = document.getElementById(`app-${id}`);
+        const btn = document.getElementById(`app-btn-${id}`);
+        if (id === appId) {
+          el.classList.remove('hidden');
+          btn.className = "flex-1 min-w-[140px] px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 bg-blue-600 text-white shadow-md";
+        } else {
+          el.classList.add('hidden');
+          btn.className = "flex-1 min-w-[140px] px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 text-gray-400 hover:text-white";
+        }
+      });
+      activeAppSubTab = appId;
+      drawActiveAppSubTab();
+    }
+
+    let activeAppSubTab = 'height';
+    function drawActiveAppSubTab() {
+      if (activeAppSubTab === 'height') drawHeightApp();
+      else if (activeAppSubTab === 'gps') drawGpsApp();
+      else if (activeAppSubTab === 'graphics') drawGraphicsApp();
+      else if (activeAppSubTab === 'sound') drawSoundApp();
+    }
+
+    // --- Synchronize Angle Controls ---
+    function setAngle(deg) {
+      currentAngle = (deg + 360) % 360;
+      angleSlider.value = Math.round(currentAngle);
+      angleInput.value = Math.round(currentAngle);
+      updateDashboardValues();
+      drawVisualizer();
+    }
+
+    angleSlider.addEventListener('input', (e) => setAngle(parseFloat(e.target.value)));
+    angleInput.addEventListener('change', (e) => setAngle(parseFloat(e.target.value)));
+
+    function resetAngle() {
+      if (isAnimating) toggleAnimation();
+      setAngle(45);
+    }
+
+    function toggleAnimation() {
+      isAnimating = !isAnimating;
+      const playIcon = document.getElementById('play-icon');
+      const playText = document.getElementById('play-text');
+      const playBtn = document.getElementById('play-btn');
+
+      if (isAnimating) {
+        playIcon.className = "fa-solid fa-pause";
+        playText.textContent = "Hentikan";
+        playBtn.className = "px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-xl text-sm font-semibold transition-all flex items-center gap-2 shadow-lg shadow-amber-600/20";
+        animateLoop();
+      } else {
+        playIcon.className = "fa-solid fa-play";
+        playText.textContent = "Putar Animasi";
+        playBtn.className = "px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-sm font-semibold transition-all flex items-center gap-2 shadow-lg shadow-emerald-600/20";
+        if (animFrameId) cancelAnimationFrame(animFrameId);
+      }
+    }
+
+    function animateLoop() {
+      if (!isAnimating) return;
+      setAngle(currentAngle + 0.75);
+      animFrameId = requestAnimationFrame(animateLoop);
+    }
+
+    // --- Interactive Mouse Dragging on Unit Circle ---
+    let isDraggingCircle = false;
+    circleCanvas.addEventListener('mousedown', (e) => { isDraggingCircle = true; handleCirclePointer(e); });
+    window.addEventListener('mousemove', (e) => { if (isDraggingCircle) handleCirclePointer(e); });
+    window.addEventListener('mouseup', () => { isDraggingCircle = false; });
+    
+    // Touch support for mobile
+    circleCanvas.addEventListener('touchstart', (e) => { isDraggingCircle = true; handleCirclePointer(e.touches[0]); });
+    window.addEventListener('touchmove', (e) => { if (isDraggingCircle) handleCirclePointer(e.touches[0]); });
+    window.addEventListener('touchend', () => { isDraggingCircle = false; });
+
+    function handleCirclePointer(e) {
+      const rect = circleCanvas.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+      const dx = e.clientX - cx;
+      const dy = -(e.clientY - cy); // Canvas Y is inverted
+      let rad = Math.atan2(dy, dx);
+      let deg = rad * (180 / Math.PI);
+      if (deg < 0) deg += 360;
+      setAngle(deg);
+    }
+
+    // --- Dashboard Numerical Calculations ---
+    function updateDashboardValues() {
+      const rad = currentAngle * (Math.PI / 180);
+      const sinVal = Math.sin(rad);
+      const cosVal = Math.cos(rad);
+      const tanVal = Math.tan(rad);
+
+      // DOM updates
+      document.getElementById('sin-val').textContent = sinVal.toFixed(4);
+      document.getElementById('cos-val').textContent = cosVal.toFixed(4);
+      
+      const tanEl = document.getElementById('tan-val');
+      if (Math.abs(cosVal) < 0.0001) {
+        tanEl.textContent = "Tak Hingga (∞)";
+      } else {
+        tanEl.textContent = tanVal.toFixed(4);
+      }
+
+      document.getElementById('opp-len').textContent = Math.abs(sinVal).toFixed(3);
+      document.getElementById('adj-len').textContent = Math.abs(cosVal).toFixed(3);
+
+      // Reciprocals
+      document.getElementById('csc-val').textContent = Math.abs(sinVal) > 0.0001 ? (1/sinVal).toFixed(3) : "∞";
+      document.getElementById('sec-val').textContent = Math.abs(cosVal) > 0.0001 ? (1/cosVal).toFixed(3) : "∞";
+      document.getElementById('cot-val').textContent = Math.abs(sinVal) > 0.0001 ? (cosVal/sinVal).toFixed(3) : "∞";
+
+      // Radian and Pi notation
+      document.getElementById('rad-val').textContent = `${rad.toFixed(2)} rad`;
+      document.getElementById('pi-val').textContent = `${(currentAngle / 180).toFixed(2)} π`;
+      document.getElementById('coord-val').textContent = `(${cosVal.toFixed(2)}, ${sinVal.toFixed(2)})`;
+
+      // Quadrant badge
+      const qBadge = document.getElementById('quadrant-badge');
+      if (currentAngle >= 0 && currentAngle < 90) {
+        qBadge.textContent = "Kuadran I (Semua +)";
+        qBadge.className = "px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
+      } else if (currentAngle >= 90 && currentAngle < 180) {
+        qBadge.textContent = "Kuadran II (Sin +)";
+        qBadge.className = "px-2.5 py-0.5 rounded-full text-xs font-semibold bg-pink-500/10 text-pink-400 border border-pink-500/20";
+      } else if (currentAngle >= 180 && currentAngle < 270) {
+        qBadge.textContent = "Kuadran III (Tan +)";
+        qBadge.className = "px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-500/10 text-purple-400 border border-purple-500/20";
+      } else {
+        qBadge.textContent = "Kuadran IV (Cos +)";
+        qBadge.className = "px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/20";
+      }
+    }
+
+    // --- DRAWING: Unit Circle & Wave Canvas ---
+    function drawVisualizer() {
+      drawUnitCircle();
+      drawWaves();
+    }
+
+    function drawUnitCircle() {
+      const w = circleCanvas.width;
+      const h = circleCanvas.height;
+      const cx = w / 2;
+      const cy = h / 2;
+      const r = 130; // Radius in pixels
+
+      circleCtx.clearRect(0, 0, w, h);
+
+      // Background Grid Line
+      circleCtx.strokeStyle = '#1e293b';
+      circleCtx.lineWidth = 1;
+      circleCtx.beginPath();
+      circleCtx.moveTo(0, cy); circleCtx.lineTo(w, cy);
+      circleCtx.moveTo(cx, 0); circleCtx.lineTo(cx, h);
+      circleCtx.stroke();
+
+      // Outer Circle
+      circleCtx.strokeStyle = '#334155';
+      circleCtx.lineWidth = 2;
+      circleCtx.beginPath();
+      circleCtx.arc(cx, cy, r, 0, Math.PI * 2);
+      circleCtx.stroke();
+
+      // Calculations
+      const rad = currentAngle * (Math.PI / 180);
+      const px = cx + r * Math.cos(rad);
+      const py = cy - r * Math.sin(rad); // Flip y for canvas
+
+      // Angle Arc (Sector)
+      circleCtx.fillStyle = 'rgba(59, 130, 246, 0.15)';
+      circleCtx.strokeStyle = '#3b82f6';
+      circleCtx.lineWidth = 1.5;
+      circleCtx.beginPath();
+      circleCtx.moveTo(cx, cy);
+      circleCtx.arc(cx, cy, 35, 0, -rad, true);
+      circleCtx.closePath();
+      circleCtx.fill();
+      circleCtx.stroke();
+
+      // Label Theta Arc
+      circleCtx.fillStyle = '#60a5fa';
+      circleCtx.font = '12px JetBrains Mono';
+      const labelAngle = -rad / 2;
+      circleCtx.fillText('θ', cx + 45 * Math.cos(labelAngle) - 4, cy + 45 * Math.sin(labelAngle) + 4);
+
+      // Triangle Components
+      // 1. Adjacent (Cos) - Blue Line on X-axis
+      circleCtx.strokeStyle = '#3b82f6';
+      circleCtx.lineWidth = 3.5;
+      circleCtx.beginPath();
+      circleCtx.moveTo(cx, cy);
+      circleCtx.lineTo(px, cy);
+      circleCtx.stroke();
+
+      // 2. Opposite (Sin) - Pink Line on Y-axis
+      circleCtx.strokeStyle = '#ec4899';
+      circleCtx.lineWidth = 3.5;
+      circleCtx.beginPath();
+      circleCtx.moveTo(px, cy);
+      circleCtx.lineTo(px, py);
+      circleCtx.stroke();
+
+      // 3. Hypotenuse (r = 1) - Amber Line
+      circleCtx.strokeStyle = '#f59e0b';
+      circleCtx.lineWidth = 3;
+      circleCtx.beginPath();
+      circleCtx.moveTo(cx, cy);
+      circleCtx.lineTo(px, py);
+      circleCtx.stroke();
+
+      // Radius Point Handle
+      circleCtx.fillStyle = '#ffffff';
+      circleCtx.beginPath();
+      circleCtx.arc(px, py, 7, 0, Math.PI * 2);
+      circleCtx.fill();
+      circleCtx.strokeStyle = '#3b82f6';
+      circleCtx.lineWidth = 3;
+      circleCtx.stroke();
+
+      // Point Coordinates text
+      circleCtx.fillStyle = '#f3f4f6';
+      circleCtx.font = '11px JetBrains Mono';
+      circleCtx.fillText(`P(${Math.cos(rad).toFixed(2)}, ${Math.sin(rad).toFixed(2)})`, px + (px > cx ? 10 : -75), py + (py > cy ? 20 : -10));
+    }
+
+    function drawWaves() {
+      const w = waveCanvas.width;
+      const h = waveCanvas.height;
+      const cy = h / 2;
+      const amp = 90; // Wave amplitude
+
+      waveCtx.clearRect(0, 0, w, h);
+
+      // Axis Line
+      waveCtx.strokeStyle = '#1e293b';
+      waveCtx.lineWidth = 1;
+      waveCtx.beginPath();
+      waveCtx.moveTo(0, cy); waveCtx.lineTo(w, cy);
+      waveCtx.stroke();
+
+      // Grid Angle Markers (90°, 180°, 270°, 360°)
+      const step = w / 4;
+      const labels = ['0°', '90°', '180°', '270°', '360°'];
+      waveCtx.fillStyle = '#64748b';
+      waveCtx.font = '10px JetBrains Mono';
+      for (let i = 0; i <= 4; i++) {
+        const x = i * step;
+        waveCtx.beginPath();
+        waveCtx.moveTo(x, cy - 5); waveCtx.lineTo(x, cy + 5);
+        waveCtx.strokeStyle = '#334155';
+        waveCtx.stroke();
+        waveCtx.fillText(labels[i], x > w - 30 ? x - 25 : x + 4, cy + 18);
+      }
+
+      // Draw Cosine Wave (Blue)
+      waveCtx.strokeStyle = '#3b82f6';
+      waveCtx.lineWidth = 2.5;
+      waveCtx.beginPath();
+      for (let x = 0; x <= w; x++) {
+        const deg = (x / w) * 360;
+        const rad = deg * (Math.PI / 180);
+        const y = cy - amp * Math.cos(rad);
+        if (x === 0) waveCtx.moveTo(x, y);
+        else waveCtx.lineTo(x, y);
+      }
+      waveCtx.stroke();
+
+      // Draw Sine Wave (Pink)
+      waveCtx.strokeStyle = '#ec4899';
+      waveCtx.lineWidth = 2.5;
+      waveCtx.beginPath();
+      for (let x = 0; x <= w; x++) {
+        const deg = (x / w) * 360;
+        const rad = deg * (Math.PI / 180);
+        const y = cy - amp * Math.sin(rad);
+        if (x === 0) waveCtx.moveTo(x, y);
+        else waveCtx.lineTo(x, y);
+      }
+      waveCtx.stroke();
+
+      // Current Angle Pointer Line & Indicators
+      const currentX = (currentAngle / 360) * w;
+      const currentRad = currentAngle * (Math.PI / 180);
+      const sinY = cy - amp * Math.sin(currentRad);
+      const cosY = cy - amp * Math.cos(currentRad);
+
+      // Vertical cursor line
+      waveCtx.setLineDash([4, 4]);
+      waveCtx.strokeStyle = '#94a3b8';
+      waveCtx.lineWidth = 1;
+      waveCtx.beginPath();
+      waveCtx.moveTo(currentX, 0);
+      waveCtx.lineTo(currentX, h);
+      waveCtx.stroke();
+      waveCtx.setLineDash([]); // Reset dash
+
+      // Sine Marker Point
+      waveCtx.fillStyle = '#ec4899';
+      waveCtx.beginPath();
+      waveCtx.arc(currentX, sinY, 6, 0, Math.PI * 2);
+      waveCtx.fill();
+
+      // Cosine Marker Point
+      waveCtx.fillStyle = '#3b82f6';
+      waveCtx.beginPath();
+      waveCtx.arc(currentX, cosY, 6, 0, Math.PI * 2);
+      waveCtx.fill();
+    }
+
+    // ==================== APP SIMULATOR LOGIC ====================
+
+    // App 1: Height Measurement
+    const heightCanvas = document.getElementById('heightCanvas');
+    const heightCtx = heightCanvas.getContext('2d');
+    const appDistSlider = document.getElementById('app-dist-slider');
+    const appElevSlider = document.getElementById('app-elev-slider');
+    const appEyeSlider = document.getElementById('app-eye-slider');
+
+    function drawHeightApp() {
+      const d = parseFloat(appDistSlider.value);
+      const theta = parseFloat(appElevSlider.value);
+      const eyeH = parseFloat(appEyeSlider.value);
+
+      document.getElementById('app-dist-label').textContent = `${d.toFixed(1)} m`;
+      document.getElementById('app-elev-label').textContent = `${theta}°`;
+      document.getElementById('app-eye-label').textContent = `${eyeH.toFixed(1)} m`;
+
+      const rad = theta * (Math.PI / 180);
+      const buildingH_trig = d * Math.tan(rad);
+      const totalH = buildingH_trig + eyeH;
+
+      document.getElementById('app-building-height').textContent = `${totalH.toFixed(2)} m`;
+
+      // Update Formula Steps Text
+      document.getElementById('calc-angle').textContent = theta;
+      document.getElementById('calc-dist').textContent = d;
+      document.getElementById('calc-dist2').textContent = d;
+      document.getElementById('calc-tan').textContent = Math.tan(rad).toFixed(3);
+      document.getElementById('calc-x').textContent = buildingH_trig.toFixed(2);
+      document.getElementById('calc-x2').textContent = buildingH_trig.toFixed(2);
+      document.getElementById('calc-eye').textContent = eyeH;
+      document.getElementById('calc-total').textContent = totalH.toFixed(2);
+
+      // Render Canvas Graphic
+      const w = heightCanvas.width;
+      const h = heightCanvas.height;
+      heightCtx.clearRect(0, 0, w, h);
+
+      const groundY = h - 50;
+      const personX = 80;
+      const buildingWidth = 90;
+      const scale = 8; // Pixels per meter
+
+      const buildingX = personX + (d * scale);
+      const personHeightPx = eyeH * scale;
+      const eyeY = groundY - personHeightPx;
+      const buildingTopY = eyeY - (buildingH_trig * scale);
+
+      // Ground Line
+      heightCtx.strokeStyle = '#334155';
+      heightCtx.lineWidth = 3;
+      heightCtx.beginPath();
+      heightCtx.moveTo(20, groundY); heightCtx.lineTo(w - 20, groundY);
+      heightCtx.stroke();
+
+      // Building Outline
+      heightCtx.fillStyle = '#1e293b';
+      heightCtx.strokeStyle = '#3b82f6';
+      heightCtx.lineWidth = 2;
+      heightCtx.fillRect(buildingX, buildingTopY, buildingWidth, groundY - buildingTopY);
+      heightCtx.strokeRect(buildingX, buildingTopY, buildingWidth, groundY - buildingTopY);
+
+      // Building Windows Detail
+      heightCtx.fillStyle = '#38bdf8';
+      for (let wy = buildingTopY + 15; wy < groundY - 20; wy += 25) {
+        for (let wx = buildingX + 15; wx < buildingX + buildingWidth - 20; wx += 25) {
+          heightCtx.fillRect(wx, wy, 12, 15);
+        }
+      }
+
+      // Person Stick Figure
+      heightCtx.strokeStyle = '#f3f4f6';
+      heightCtx.lineWidth = 2;
+      // Head
+      heightCtx.beginPath();
+      heightCtx.arc(personX, eyeY - 10, 8, 0, Math.PI * 2);
+      heightCtx.stroke();
+      // Body
+      heightCtx.beginPath();
+      heightCtx.moveTo(personX, eyeY - 2); heightCtx.lineTo(personX, groundY);
+      heightCtx.stroke();
+
+      // Triangle Lines
+      // Horizontal Adjacent (Distance)
+      heightCtx.setLineDash([4, 4]);
+      heightCtx.strokeStyle = '#60a5fa';
+      heightCtx.beginPath();
+      heightCtx.moveTo(personX, eyeY); heightCtx.lineTo(buildingX, eyeY);
+      heightCtx.stroke();
+
+      // Vertical Opposite (Building portion)
+      heightCtx.strokeStyle = '#ec4899';
+      heightCtx.beginPath();
+      heightCtx.moveTo(buildingX, eyeY); heightCtx.lineTo(buildingX, buildingTopY);
+      heightCtx.stroke();
+
+      // Hypotenuse (Line of Sight)
+      heightCtx.setLineDash([]);
+      heightCtx.strokeStyle = '#f59e0b';
+      heightCtx.lineWidth = 2.5;
+      heightCtx.beginPath();
+      heightCtx.moveTo(personX, eyeY); heightCtx.lineTo(buildingX, buildingTopY);
+      heightCtx.stroke();
+
+      // Angle Arc
+      heightCtx.strokeStyle = '#ec4899';
+      heightCtx.beginPath();
+      heightCtx.arc(personX, eyeY, 30, 0, -rad, true);
+      heightCtx.stroke();
+      heightCtx.fillStyle = '#ec4899';
+      heightCtx.font = '12px JetBrains Mono';
+      heightCtx.fillText(`${theta}°`, personX + 35, eyeY - 8);
+
+      // Distance Label
+      heightCtx.fillStyle = '#60a5fa';
+      heightCtx.font = '11px Plus Jakarta Sans';
+      heightCtx.fillText(`d = ${d.toFixed(1)} m`, personX + (d * scale)/2 - 20, eyeY + 18);
+    }
+
+    [appDistSlider, appElevSlider, appEyeSlider].forEach(s => s.addEventListener('input', drawHeightApp));
+
+    // App 2: GPS Triangulation
+    const gpsCanvas = document.getElementById('gpsCanvas');
+    const gpsCtx = gpsCanvas.getContext('2d');
+    let userTarget = { x: 320, y: 180 };
+
+    const satellites = [
+      { id: 'ALPHA', color: '#eab308', x: 150, y: 70 },
+      { id: 'BETA', color: '#06b6d4', x: 500, y: 90 },
+      { id: 'GAMMA', color: '#a855f7', x: 340, y: 300 }
+    ];
+
+    function drawGpsApp() {
+      const w = gpsCanvas.width;
+      const h = gpsCanvas.height;
+      gpsCtx.clearRect(0, 0, w, h);
+
+      // Grid background radar
+      gpsCtx.strokeStyle = 'rgba(255,255,255,0.05)';
+      gpsCtx.lineWidth = 1;
+      for (let x = 0; x < w; x += 40) { gpsCtx.beginPath(); gpsCtx.moveTo(x, 0); gpsCtx.lineTo(x, h); gpsCtx.stroke(); }
+      for (let y = 0; y < h; y += 40) { gpsCtx.beginPath(); gpsCtx.moveTo(0, y); gpsCtx.lineTo(w, y); gpsCtx.stroke(); }
+
+      // Draw Satellite Circles & Distance Lines
+      satellites.forEach((sat, idx) => {
+        const dx = userTarget.x - sat.x;
+        const dy = userTarget.y - sat.y;
+        const distPx = Math.sqrt(dx * dx + dy * dy);
+        const realDistKm = (distPx * 0.85).toFixed(1);
+
+        document.getElementById(`sat${idx+1}-dist`).textContent = `${realDistKm} km`;
+
+        // Signal Circle Range
+        gpsCtx.strokeStyle = sat.color;
+        gpsCtx.globalAlpha = 0.25;
+        gpsCtx.lineWidth = 2;
+        gpsCtx.beginPath();
+        gpsCtx.arc(sat.x, sat.y, distPx, 0, Math.PI * 2);
+        gpsCtx.stroke();
+        gpsCtx.globalAlpha = 1.0;
+
+        // Vector Ray to User
+        gpsCtx.setLineDash([3, 3]);
+        gpsCtx.strokeStyle = sat.color;
+        gpsCtx.lineWidth = 1.5;
+        gpsCtx.beginPath();
+        gpsCtx.moveTo(sat.x, sat.y); gpsCtx.lineTo(userTarget.x, userTarget.y);
+        gpsCtx.stroke();
+        gpsCtx.setLineDash([]);
+
+        // Satellite Node Graphic
+        gpsCtx.fillStyle = sat.color;
+        gpsCtx.beginPath();
+        gpsCtx.arc(sat.x, sat.y, 8, 0, Math.PI * 2);
+        gpsCtx.fill();
+
+        gpsCtx.fillStyle = '#ffffff';
+        gpsCtx.font = '10px JetBrains Mono';
+        gpsCtx.fillText(`SAT ${sat.id}`, sat.x - 22, sat.y - 12);
+      });
+
+      // User Position (Pinpoint Intersection)
+      gpsCtx.fillStyle = '#10b981';
+      gpsCtx.beginPath();
+      gpsCtx.arc(userTarget.x, userTarget.y, 6, 0, Math.PI * 2);
+      gpsCtx.fill();
+      gpsCtx.strokeStyle = '#ffffff';
+      gpsCtx.lineWidth = 2;
+      gpsCtx.stroke();
+
+      // Pulsing Ring for User Location
+      gpsCtx.strokeStyle = '#10b981';
+      gpsCtx.lineWidth = 1.5;
+      gpsCtx.beginPath();
+      gpsCtx.arc(userTarget.x, userTarget.y, 14, 0, Math.PI * 2);
+      gpsCtx.stroke();
+
+      gpsCtx.fillStyle = '#10b981';
+      gpsCtx.font = '11px Plus Jakarta Sans';
+      gpsCtx.fillText('Lokasi Pengguna (Terkunci)', userTarget.x + 15, userTarget.y + 4);
+    }
+
+    gpsCanvas.addEventListener('click', (e) => {
+      const rect = gpsCanvas.getBoundingClientRect();
+      userTarget.x = e.clientX - rect.left;
+      userTarget.y = e.clientY - rect.top;
+      drawGpsApp();
+    });
+
+    // App 3: 3D Graphics Character Rotation
+    const graphicsCanvas = document.getElementById('graphicsCanvas');
+    const graphicsCtx = graphicsCanvas.getContext('2d');
+    const charRotSlider = document.getElementById('char-rot-slider');
+
+    function drawGraphicsApp() {
+      const deg = parseFloat(charRotSlider.value);
+      document.getElementById('char-rot-label').textContent = `${deg}°`;
+
+      const rad = deg * (Math.PI / 180);
+      const cosVal = Math.cos(rad);
+      const sinVal = Math.sin(rad);
+
+      document.getElementById('char-vector').textContent = `(${cosVal.toFixed(2)}, ${sinVal.toFixed(2)})`;
+
+      const w = graphicsCanvas.width;
+      const h = graphicsCanvas.height;
+      const cx = w / 2;
+      const cy = h / 2;
+
+      graphicsCtx.clearRect(0, 0, w, h);
+
+      // Coordinate axes
+      graphicsCtx.strokeStyle = '#1e293b';
+      graphicsCtx.lineWidth = 1;
+      graphicsCtx.beginPath();
+      graphicsCtx.moveTo(0, cy); graphicsCtx.lineTo(w, cy);
+      graphicsCtx.moveTo(cx, 0); graphicsCtx.lineTo(cx, h);
+      graphicsCtx.stroke();
+
+      // Save context state for matrix rotation
+      graphicsCtx.save();
+      graphicsCtx.translate(cx, cy);
+      graphicsCtx.rotate(rad);
+
+      // Draw Spaceship / Character (Rotated by matrix)
+      graphicsCtx.fillStyle = '#a855f7';
+      graphicsCtx.strokeStyle = '#c084fc';
+      graphicsCtx.lineWidth = 3;
+
+      graphicsCtx.beginPath();
+      graphicsCtx.moveTo(45, 0);       // Ship nose (pointing right originally)
+      graphicsCtx.lineTo(-25, -30);    // Top wing
+      graphicsCtx.lineTo(-10, 0);      // Inner tail
+      graphicsCtx.lineTo(-25, 30);     // Bottom wing
+      graphicsCtx.closePath();
+      graphicsCtx.fill();
+      graphicsCtx.stroke();
+
+      // Core cockpit
+      graphicsCtx.fillStyle = '#38bdf8';
+      graphicsCtx.beginPath();
+      graphicsCtx.arc(5, 0, 8, 0, Math.PI * 2);
+      graphicsCtx.fill();
+
+      graphicsCtx.restore(); // Restore context
+
+      // Forward Orientation Ray
+      const rayLen = 100;
+      const rx = cx + rayLen * cosVal;
+      const ry = cy + rayLen * sinVal;
+
+      graphicsCtx.strokeStyle = '#f59e0b';
+      graphicsCtx.setLineDash([3, 3]);
+      graphicsCtx.lineWidth = 2;
+      graphicsCtx.beginPath();
+      graphicsCtx.moveTo(cx, cy); graphicsCtx.lineTo(rx, ry);
+      graphicsCtx.stroke();
+      graphicsCtx.setLineDash([]);
+    }
+
+    charRotSlider.addEventListener('input', drawGraphicsApp);
+
+    function rotateCharAnim() {
+      let angle = 0;
+      const interval = setInterval(() => {
+        angle += 5;
+        charRotSlider.value = angle;
+        drawGraphicsApp();
+        if (angle >= 360) clearInterval(interval);
+      }, 16);
+    }
+
+    function resetCharRot() {
+      charRotSlider.value = 0;
+      drawGraphicsApp();
+    }
+
+    // App 4: Sound Waves Audio Synthesizer
+    const soundCanvas = document.getElementById('soundCanvas');
+    const soundCtx = soundCanvas.getContext('2d');
+    const soundFreqSlider = document.getElementById('sound-freq-slider');
+    const soundAmpSlider = document.getElementById('sound-amp-slider');
+
+    let audioCtx = null;
+    let oscillator = null;
+    let gainNode = null;
+    let isAudioPlaying = false;
+
+    function drawSoundApp() {
+      const freq = parseFloat(soundFreqSlider.value);
+      const amp = parseFloat(soundAmpSlider.value);
+
+      document.getElementById('sound-freq-label').textContent = `${freq} Hz`;
+      document.getElementById('sound-amp-label').textContent = `${amp}%`;
+
+      if (oscillator && audioCtx) {
+        oscillator.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gainNode.gain.setValueAtTime((amp / 100) * 0.1, audioCtx.currentTime);
+      }
+
+      // Render Animated Sound Wave Canvas
+      const w = soundCanvas.width;
+      const h = soundCanvas.height;
+      const cy = h / 2;
+
+      soundCtx.clearRect(0, 0, w, h);
+
+      soundCtx.strokeStyle = '#10b981';
+      soundCtx.lineWidth = 2.5;
+      soundCtx.beginPath();
+
+      const waveLengthScale = freq / 40; // Frequency affects tightness
+      const waveAmpPx = (amp / 100) * 110;
+
+      for (let x = 0; x <= w; x++) {
+        const rad = (x / w) * Math.PI * 2 * waveLengthScale;
+        const y = cy - waveAmpPx * Math.sin(rad);
+        if (x === 0) soundCtx.moveTo(x, y);
+        else soundCtx.lineTo(x, y);
+      }
+      soundCtx.stroke();
+    }
+
+    [soundFreqSlider, soundAmpSlider].forEach(s => s.addEventListener('input', drawSoundApp));
+
+    function toggleAudioSynth() {
+      const btnText = document.getElementById('audio-btn-text');
+      const btn = document.getElementById('audio-toggle-btn');
+
+      if (!isAudioPlaying) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        oscillator = audioCtx.createOscillator();
+        gainNode = audioCtx.createGain();
+
+        const freq = parseFloat(soundFreqSlider.value);
+        const amp = parseFloat(soundAmpSlider.value);
+
+        oscillator.type = 'sine'; // Sine Wave Pitch
+        oscillator.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gainNode.gain.setValueAtTime((amp / 100) * 0.1, audioCtx.currentTime);
+
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        oscillator.start();
+
+        isAudioPlaying = true;
+        btnText.textContent = "Matikan Audio";
+        btn.className = "px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-2 shadow-lg shadow-rose-600/20";
+      } else {
+        if (oscillator) {
+          oscillator.stop();
+          oscillator.disconnect();
+        }
+        isAudioPlaying = false;
+        btnText.textContent = "Bunyikan Nadanya (Audio Synthesizer)";
+        btn.className = "px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-2 shadow-lg shadow-emerald-600/20";
+      }
+    }
+
+    // --- INITIALIZATION ON LOAD ---
+    window.onload = function() {
+      updateDashboardValues();
+      drawVisualizer();
+    };
+
+    // Responsive Canvas Resize redraw handler
+    window.addEventListener('resize', () => {
+      drawVisualizer();
+      drawActiveAppSubTab();
+    });
+  </script>
+</body>
+</html>
